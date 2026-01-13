@@ -1,0 +1,86 @@
+<Window x:Class="PaintWPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PaintWPF.Views"
+        xmlns:viewModels="clr-namespace:PaintWPF.ViewModels"
+        xmlns:models="clr-namespace:PaintWPF.Models"
+        xmlns:converters="clr-namespace:PaintWPF.Converters"
+        mc:Ignorable="d"
+        Title="PaintWPF" Height="600" Width="1000">
+    <Window.Resources>
+        <converters:RadiusToDiameterConverter x:Key="RadiusToDiameterConverter"/>
+    </Window.Resources>
+    <Window.DataContext>
+        <viewModels:MainViewModel/>
+    </Window.DataContext>
+    <DockPanel>
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar Header="File">
+                <Button Content="New"/>
+                <Button Content="Open"/>
+                <Button Content="Save"/>
+            </ToolBar>
+            <ToolBar Header="Tools">
+                <Button Content="Pencil" Command="{Binding SelectToolCommand}" CommandParameter="Pencil"/>
+                <Button Content="Eraser" Command="{Binding SelectToolCommand}" CommandParameter="Eraser"/>
+                <Button Content="Color Picker" Command="{Binding SelectToolCommand}" CommandParameter="ColorPicker"/>
+                <Button Content="Fill" Command="{Binding SelectToolCommand}" CommandParameter="Fill"/>
+            </ToolBar>
+            <ToolBar Header="Shapes">
+                <Button Content="Line" Command="{Binding SelectToolCommand}" CommandParameter="Line"/>
+                <Button Content="Rectangle" Command="{Binding SelectToolCommand}" CommandParameter="Rectangle"/>
+                <Button Content="Ellipse" Command="{Binding SelectToolCommand}" CommandParameter="Ellipse"/>
+            </ToolBar>
+            <ToolBar Header="Colors">
+                <!-- Color palette will go here -->
+            </ToolBar>
+        </ToolBarTray>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="Cursor Position: 0, 0"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="Canvas Size: 800x600"/>
+            </StatusBarItem>
+        </StatusBar>
+        <ItemsControl ItemsSource="{Binding Shapes}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Canvas Background="White"
+                            MouseDown="Canvas_MouseDown"
+                            MouseMove="Canvas_MouseMove"
+                            MouseUp="Canvas_MouseUp"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.Resources>
+                <DataTemplate DataType="{x:Type models:PolylineShape}">
+                    <Polyline Points="{Binding Points}"
+                              Stroke="{Binding StrokeColor}"
+                              StrokeThickness="{Binding StrokeThickness}"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type models:Line}">
+                    <Line X1="{Binding StartPoint.X}" Y1="{Binding StartPoint.Y}"
+                          X2="{Binding EndPoint.X}" Y2="{Binding EndPoint.Y}"
+                          Stroke="{Binding StrokeColor}"
+                          StrokeThickness="{Binding StrokeThickness}"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type models:Rectangle}">
+                    <Rectangle Canvas.Left="{Binding TopLeft.X}" Canvas.Top="{Binding TopLeft.Y}"
+                               Width="{Binding Width}" Height="{Binding Height}"
+                               Stroke="{Binding StrokeColor}"
+                               StrokeThickness="{Binding StrokeThickness}"/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type models:Ellipse}">
+                    <Ellipse Canvas.Left="{Binding Left}" Canvas.Top="{Binding Top}"
+                             Width="{Binding RadiusX, Converter={StaticResource RadiusToDiameterConverter}}"
+                             Height="{Binding RadiusY, Converter={StaticResource RadiusToDiameterConverter}}"
+                             Stroke="{Binding StrokeColor}"
+                             StrokeThickness="{Binding StrokeThickness}"/>
+                </DataTemplate>
+            </ItemsControl.Resources>
+        </ItemsControl>
+    </DockPanel>
+</Window>
