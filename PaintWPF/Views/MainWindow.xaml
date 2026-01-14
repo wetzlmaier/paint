@@ -18,9 +18,9 @@
     <DockPanel>
         <ToolBarTray DockPanel.Dock="Top">
             <ToolBar Header="File">
-                <Button Content="New"/>
-                <Button Content="Open"/>
-                <Button Content="Save"/>
+                <Button Content="New" Command="{Binding NewCommand}"/>
+                <Button Content="Open" Command="{Binding OpenCommand}"/>
+                <Button Content="Save" Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=DrawingCanvas}"/>
             </ToolBar>
             <ToolBar Header="Tools">
                 <Button Content="Pencil" Command="{Binding SelectToolCommand}" CommandParameter="Pencil"/>
@@ -49,7 +49,7 @@
         <ItemsControl ItemsSource="{Binding Shapes}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Canvas Background="White"
+                    <Canvas x:Name="DrawingCanvas" Background="White"
                             MouseDown="Canvas_MouseDown"
                             MouseMove="Canvas_MouseMove"
                             MouseUp="Canvas_MouseUp"/>

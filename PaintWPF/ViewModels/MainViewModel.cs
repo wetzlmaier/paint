@@ -1,7 +1,11 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using PaintWPF.Models;
 
 namespace PaintWPF.ViewModels
@@ -44,6 +48,9 @@ namespace PaintWPF.ViewModels
         }
 
         public ICommand SelectToolCommand { get; }
+        public ICommand NewCommand { get; }
+        public ICommand OpenCommand { get; }
+        public ICommand SaveCommand { get; }
 
         private Shape _currentShape;
         private Point _startPoint;
@@ -51,11 +58,59 @@ namespace PaintWPF.ViewModels
         public MainViewModel()
         {
             SelectToolCommand = new RelayCommand(SelectTool);
+            NewCommand = new RelayCommand(NewCanvas);
+            OpenCommand = new RelayCommand(OpenImage);
+            SaveCommand = new RelayCommand(SaveImage);
         }
 
         private void SelectTool(object tool)
         {
             SelectedTool = tool.ToString();
+        }
+
+        private void NewCanvas(object obj)
+        {
+            Shapes.Clear();
+        }
+
+        private void OpenImage(object obj)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Image files (*.png;*.jpeg)|*.png;*.jpeg|All files (*.*)|*.*"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                // In a real application, you would load the image data into your model.
+                // For this example, we'll just clear the canvas.
+                Shapes.Clear();
+            }
+        }
+
+        private void SaveImage(object obj)
+        {
+            var canvas = obj as Canvas;
+            if (canvas == null) return;
+
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG Image (*.png)|*.png"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var rtb = new RenderTargetBitmap((int)canvas.RenderSize.Width, (int)canvas.RenderSize.Height, 96d, 96d, PixelFormats.Default);
+                rtb.Render(canvas);
+
+                var pngEncoder = new PngBitmapEncoder();
+                pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
+
+                using (var fs = File.OpenWrite(saveFileDialog.FileName))
+                {
+                    pngEncoder.Save(fs);
+                }
+            }
         }
 
         public void StartDrawing(Point startPoint)
