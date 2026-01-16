@@ -8,6 +8,7 @@ namespace WpfPaint.Models
     [XmlInclude(typeof(RectangleShape))]
     [XmlInclude(typeof(EllipseShape))]
     [XmlInclude(typeof(PolylineShape))]
+    [XmlInclude(typeof(EraserShape))]
     public abstract class Shape
     {
         public Point StartPoint { get; set; }

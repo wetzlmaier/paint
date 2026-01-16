@@ -9,7 +9,10 @@ using WpfPaint.ViewModels.Commands;
 using Microsoft.Win32;
 using System.Xml.Serialization;
 using System.IO;
-using System;
+using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using Microsoft.Toolkit.Mvvm.Messaging;
+using WpfPaint.ViewModels.Messages;
 
 namespace WpfPaint.ViewModels
 {
@@ -82,41 +85,39 @@ namespace WpfPaint.ViewModels
         public ICommand MouseMoveCommand { get; }
         public ICommand MouseUpCommand { get; }
         public ICommand SelectColorCommand { get; }
-        public ICommand SaveCommand { get; }
-        public ICommand OpenCommand { get; }
+        public ICommand SaveProjectCommand { get; }
+        public ICommand SaveAsImageCommand { get; }
+        public ICommand OpenProjectCommand { get; }
         public ICommand UndoCommand { get; }
         public ICommand RedoCommand { get; }
 
+        public ObservableCollection<Color> Colors { get; } = new ObservableCollection<Color>();
+
         private Shape _currentShape;
         private Point _startPoint;
-        private bool _isForegroundColorSelected = true;
         private readonly ObservableCollection<Shape> _history = new ObservableCollection<Shape>();
         private int _historyIndex = -1;
         private readonly ObservableCollection<Shape> _redoStack = new ObservableCollection<Shape>();
-        public bool IsForegroundColorSelected
-        {
-            get => _isForegroundColorSelected;
-            set
-            {
-                _isForegroundColorSelected = value;
-                OnPropertyChanged();
-            }
-        }
-
         public MainViewModel()
         {
+            Colors.Add(System.Windows.Media.Colors.Black);
+            Colors.Add(System.Windows.Media.Colors.Red);
+            Colors.Add(System.Windows.Media.Colors.Green);
+            Colors.Add(System.Windows.Media.Colors.Blue);
+
             SelectToolCommand = new RelayCommand(SelectTool);
             MouseDownCommand = new RelayCommand(MouseDown);
             MouseMoveCommand = new RelayCommand(MouseMove);
             MouseUpCommand = new RelayCommand(MouseUp);
             SelectColorCommand = new RelayCommand(SelectColor);
-            SaveCommand = new RelayCommand(Save);
-            OpenCommand = new RelayCommand(Open);
+            SaveProjectCommand = new RelayCommand(SaveProject);
+            SaveAsImageCommand = new RelayCommand(SaveAsImage);
+            OpenProjectCommand = new RelayCommand(OpenProject);
             UndoCommand = new RelayCommand(Undo, CanUndo);
             RedoCommand = new RelayCommand(Redo, CanRedo);
         }
 
-        private void Save(object parameter)
+        private void SaveProject(object parameter)
         {
             var saveFileDialog = new SaveFileDialog
             {
@@ -133,7 +134,20 @@ namespace WpfPaint.ViewModels
             }
         }
 
-        private void Open(object parameter)
+        private void SaveAsImage(object parameter)
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG Image (*.png)|*.png|JPEG Image (*.jpg)|*.jpg|Bitmap Image (*.bmp)|*.bmp",
+                DefaultExt = ".png"
+            };
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                WeakReferenceMessenger.Default.Send(new SaveCanvasAsImageMessage(saveFileDialog.FileName));
+            }
+        }
+
+        private void OpenProject(object parameter)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -191,14 +205,13 @@ namespace WpfPaint.ViewModels
 
         private void SelectColor(object parameter)
         {
-            if (parameter is string colorString)
+            if (parameter is object[] values && values.Length == 2 && values[0] is Color color && values[1] is MouseButton button)
             {
-                var color = (Color)ColorConverter.ConvertFromString(colorString);
-                if (IsForegroundColorSelected)
+                if (button == MouseButton.Left)
                 {
                     ForegroundColor = color;
                 }
-                else
+                else if (button == MouseButton.Right)
                 {
                     BackgroundColor = color;
                 }
@@ -242,6 +255,10 @@ namespace WpfPaint.ViewModels
                 {
                     polyline.Points.Add(currentPoint);
                 }
+                else if (_currentShape is EraserShape eraser)
+                {
+                    eraser.Points.Add(currentPoint);
+                }
             }
         }
 
@@ -268,6 +285,8 @@ namespace WpfPaint.ViewModels
                     return new RectangleShape { StartPoint = _startPoint, EndPoint = _startPoint, Color = BackgroundColor, StrokeColor = ForegroundColor, StrokeThickness = StrokeThickness };
                 case "Ellipse":
                     return new EllipseShape { StartPoint = _startPoint, EndPoint = _startPoint, Color = BackgroundColor, StrokeColor = ForegroundColor, StrokeThickness = StrokeThickness };
+                case "Eraser":
+                    return new EraserShape { StartPoint = _startPoint, EndPoint = _startPoint, Color = Colors.White, StrokeColor = Colors.White, StrokeThickness = StrokeThickness };
                 default:
                     return null;
             }

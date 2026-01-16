@@ -7,13 +7,14 @@
         xmlns:models="clr-namespace:WpfPaint.Models"
         xmlns:converters="clr-namespace:WpfPaint.Views.Converters"
         xmlns:behaviors="clr-namespace:WpfPaint.Views.Behaviors"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         Title="WPF Paint" Height="600" Width="800">
     <Window.Resources>
         <converters:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
         <converters:PointToDoubleConverter x:Key="PointToDoubleConverter"/>
-        <converters:ColorToStringConverter x:Key="ColorToStringConverter"/>
         <converters:PointCollectionConverter x:Key="PointCollectionConverter"/>
+        <converters:MouseAndColorConverter x:Key="MouseAndColorConverter"/>
     </Window.Resources>
     <Window.DataContext>
         <viewModels:MainViewModel/>
@@ -26,58 +27,71 @@
         </Grid.RowDefinitions>
 
         <!-- Toolbar -->
-        <ToolBar Grid.Row="0">
-            <Button Content="Pencil" Command="{Binding SelectToolCommand}" CommandParameter="Pencil"/>
-            <Button Content="Line" Command="{Binding SelectToolCommand}" CommandParameter="Line"/>
-            <Button Content="Rectangle" Command="{Binding SelectToolCommand}" CommandParameter="Rectangle"/>
-            <Button Content="Ellipse" Command="{Binding SelectToolCommand}" CommandParameter="Ellipse"/>
-            <Separator/>
-            <Button Content="Save" Command="{Binding SaveCommand}"/>
-            <Button Content="Open" Command="{Binding OpenCommand}"/>
-            <Separator/>
-            <Button Content="Undo" Command="{Binding UndoCommand}"/>
-            <Button Content="Redo" Command="{Binding RedoCommand}"/>
-            <Separator/>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Foreground:" VerticalAlignment="Center" Margin="5"/>
-                <Rectangle Width="20" Height="20" Fill="{Binding ForegroundColor, Converter={StaticResource ColorToBrushConverter}}" Stroke="Black" StrokeThickness="1"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Background:" VerticalAlignment="Center" Margin="5"/>
-                <Rectangle Width="20" Height="20" Fill="{Binding BackgroundColor, Converter={StaticResource ColorToBrushConverter}}" Stroke="Black" StrokeThickness="1"/>
-            </StackPanel>
-            <Separator/>
-            <ToggleButton Content="Foreground" IsChecked="{Binding IsForegroundColorSelected, Mode=TwoWay}"/>
-            <StackPanel Orientation="Horizontal">
-                <Rectangle Width="20" Height="20" Fill="Black">
-                    <Rectangle.InputBindings>
-                        <MouseBinding MouseAction="LeftClick" Command="{Binding SelectColorCommand}" CommandParameter="{Binding Fill, RelativeSource={RelativeSource Self}, Converter={StaticResource ColorToStringConverter}}"/>
-                    </Rectangle.InputBindings>
-                </Rectangle>
-                <Rectangle Width="20" Height="20" Fill="Red">
-                    <Rectangle.InputBindings>
-                        <MouseBinding MouseAction="LeftClick" Command="{Binding SelectColorCommand}" CommandParameter="{Binding Fill, RelativeSource={RelativeSource Self}, Converter={StaticResource ColorToStringConverter}}"/>
-                    </Rectangle.InputBindings>
-                </Rectangle>
-                <Rectangle Width="20" Height="20" Fill="Green">
-                    <Rectangle.InputBindings>
-                        <MouseBinding MouseAction="LeftClick" Command="{Binding SelectColorCommand}" CommandParameter="{Binding Fill, RelativeSource={RelativeSource Self}, Converter={StaticResource ColorToStringConverter}}"/>
-                    </Rectangle.InputBindings>
-                </Rectangle>
-                <Rectangle Width="20" Height="20" Fill="Blue">
-                    <Rectangle.InputBindings>
-                        <MouseBinding MouseAction="LeftClick" Command="{Binding SelectColorCommand}" CommandParameter="{Binding Fill, RelativeSource={RelativeSource Self}, Converter={StaticResource ColorToStringConverter}}"/>
-                    </Rectangle.InputBindings>
-                </Rectangle>
-            </StackPanel>
-        </ToolBar>
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <GroupBox Header="Tools">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding SelectToolCommand}" CommandParameter="Pencil">
+                            <Image Source="/Resources/Anonymous-Pencil-icon2.ico" Width="24" Height="24"/>
+                        </Button>
+                        <Button Command="{Binding SelectToolCommand}" CommandParameter="Eraser">
+                            <Image Source="/Resources/Eraser2.ico" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Shapes">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Command="{Binding SelectToolCommand}" CommandParameter="Line">
+                            <Image Source="/Resources/Line.png" Width="24" Height="24"/>
+                        </Button>
+                        <Button Command="{Binding SelectToolCommand}" CommandParameter="Rectangle">
+                            <Image Source="/Resources/Rectangle.png" Width="24" Height="24"/>
+                        </Button>
+                        <Button Command="{Binding SelectToolCommand}" CommandParameter="Ellipse">
+                            <Image Source="/Resources/Oval.png" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="Colors">
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Width="20" Height="20" Fill="{Binding ForegroundColor, Converter={StaticResource ColorToBrushConverter}}" Stroke="Black" StrokeThickness="1"/>
+                        <Rectangle Width="20" Height="20" Fill="{Binding BackgroundColor, Converter={StaticResource ColorToBrushConverter}}" Stroke="Black" StrokeThickness="1"/>
+                        <ItemsControl ItemsSource="{Binding Colors}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Rectangle Width="20" Height="20" Fill="{Binding Converter={StaticResource ColorToBrushConverter}}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </GroupBox>
+                <Button Command="{Binding SaveProjectCommand}">
+                    <Image Source="/Resources/Save.png" Width="24" Height="24"/>
+                </Button>
+                <Button Content="Save as Image" Command="{Binding SaveAsImageCommand}" CommandParameter="{Binding ElementName=PaintCanvas}"/>
+                <Button Command="{Binding OpenProjectCommand}">
+                    <Image Source="/Resources/Open.png" Width="24" Height="24"/>
+                </Button>
+                <Button Command="{Binding UndoCommand}">
+                    <Image Source="/Resources/Undo.png" Width="24" Height="24"/>
+                </Button>
+                <Button Command="{Binding RedoCommand}">
+                    <Image Source="/Resources/Redo.png" Width="24" Height="24"/>
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
 
         <!-- Canvas -->
         <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1" Margin="5">
             <ItemsControl ItemsSource="{Binding Shapes}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Canvas Background="Transparent"
+                        <Canvas x:Name="PaintCanvas" Background="Transparent"
                                 behaviors:CanvasMouseBehavior.MouseDownCommand="{Binding MouseDownCommand}"
                                 behaviors:CanvasMouseBehavior.MouseMoveCommand="{Binding MouseMoveCommand}"
                                 behaviors:CanvasMouseBehavior.MouseUpCommand="{Binding MouseUpCommand}"/>
@@ -94,6 +108,9 @@
                         <Ellipse Canvas.Left="{Binding StartPoint, Converter={StaticResource PointToDoubleConverter}, ConverterParameter=X}" Canvas.Top="{Binding StartPoint, Converter={StaticResource PointToDoubleConverter}, ConverterParameter=Y}" Width="{Binding Width}" Height="{Binding Height}" Fill="{Binding Color, Converter={StaticResource ColorToBrushConverter}}" Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrushConverter}}" StrokeThickness="{Binding StrokeThickness}"/>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type models:PolylineShape}">
+                        <Polyline Points="{Binding Points, Converter={StaticResource PointCollectionConverter}}" Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrushConverter}}" StrokeThickness="{Binding StrokeThickness}"/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type models:EraserShape}">
                         <Polyline Points="{Binding Points, Converter={StaticResource PointCollectionConverter}}" Stroke="{Binding StrokeColor, Converter={StaticResource ColorToBrushConverter}}" StrokeThickness="{Binding StrokeThickness}"/>
                     </DataTemplate>
                 </ItemsControl.Resources>
