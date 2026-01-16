@@ -9,6 +9,7 @@ using WpfPaint.ViewModels.Commands;
 using Microsoft.Win32;
 using System.Xml.Serialization;
 using System.IO;
+using System;
 
 namespace WpfPaint.ViewModels
 {
